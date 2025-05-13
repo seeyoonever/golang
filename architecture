@@ -1,0 +1,20 @@
+cs2_telegram_bot/
+│
+├── main.go                # Точка входа
+├── go.mod / go.sum        # Модуль и зависимости
+│
+├── bot/                   # Работа с Telegram API
+│   └── handler.go         # Команды, логика общения
+│
+├── steam/                 # Работа со Steam API
+│   └── steam.go
+│
+├── database/              # Работа с PostgreSQL
+│   ├── postgres.go
+│   └── models.go
+│
+├── scheduler/             # Планировщик проверок Steam
+│   └── checker.go
+│
+└── config/                # Конфигурации (токены, URL и т.д.)
+    └── config.go
