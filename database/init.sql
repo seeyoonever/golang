@@ -1,7 +1,13 @@
 CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
     telegram_id BIGINT NOT NULL UNIQUE,
-    steam_id VARCHAR(64) NOT NULL,
+    steam_id VARCHAR(64) NOT NULL UNIQUE,
     info TEXT,
     created_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS player_status (
+    steam_id TEXT PRIMARY KEY REFERENCES users(steam_id) ON DELETE CASCADE,
+    in_game BOOLEAN DEFAULT FALSE,
+    last_checked TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
