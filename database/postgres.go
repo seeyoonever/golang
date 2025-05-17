@@ -19,7 +19,7 @@ func Connect() error {
 
 	DB, err = pgxpool.New(context.Background(), dbUrl) // Создаём пул соединений
 	if err != nil {
-		return fmt.Errorf("Не удалось подключиться к БД: %w", err)
+		return fmt.Errorf("не удалось подключиться к БД: %w", err)
 	}
 
 	err = DB.Ping(context.Background()) // Пингуем базу данных, для проверки соединения

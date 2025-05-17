@@ -22,7 +22,7 @@ func AddUser(telegramID int64, steamID string, info string) error {
 	query := "INSERT INTO users (telegram_id, steam_id, info) VALUES ($1,$2,$3)"
 	_, err := DB.Exec(context.Background(), query, telegramID, steamID, info)
 	if err != nil {
-		return fmt.Errorf("Не удалось добавить пользователя: %w", err)
+		return fmt.Errorf("не удалось добавить пользователя: %w", err)
 	}
 	fmt.Println("✅ Пользователь добавлен")
 	return nil
@@ -34,7 +34,7 @@ func UserExists(telegramID int64) (bool, error) {
 	var count int
 	err := DB.QueryRow(context.Background(), query, telegramID).Scan(&count)
 	if err != nil {
-		return false, fmt.Errorf("Не удалось проверить наличие пользователя: %w", err)
+		return false, fmt.Errorf("не удалось проверить наличие пользователя: %w", err)
 	}
 
 	return count > 0, nil
