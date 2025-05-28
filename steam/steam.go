@@ -14,7 +14,7 @@ type PlayerInfoResponse struct {
 	Response struct {
 		Players []struct {
 			SteamID string `json:"steamid"`
-			GameID  string `json:"gameid.omitempty"`
+			GameID  string `json:"gameid.omitempty"` // omitempty говорит GO о том, что если поля нет, то не страшно и нужно поставить просто пустую строку
 			Persona string `json:"personaname"`
 		} `json:"players"`
 	} `json:"response"`
