@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"time"
 
 	"github.com/joho/godotenv"
 )
@@ -45,30 +44,5 @@ func main() {
 	// Запуск бота
 	bot.StartBot()
 	fmt.Println("✅ Бот успешно запущен")
-
-}
-
-func StartStatusChecker() {
-
-	go func() {
-		for {
-			// Тайм аут
-			time.Sleep(1 * time.Minute)
-
-			// Получаем всех пользователей
-			users, err := database.GetAllUsers()
-			if err != nil {
-				log.Println("Ошибка при получении пользователей:", err)
-				continue
-			}
-
-			for _, user := range users {
-				go checkUserStatus(user.TelegramID, user.SteamID)
-			}
-		}
-	}()
-}
-
-func checkUserStatus(telegramID int64, steamID string) {
 
 }

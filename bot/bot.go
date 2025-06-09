@@ -36,6 +36,8 @@ func StartBot() {
 		log.Fatal(err)
 	}
 
+	StartStatusChecker(Bot)
+
 	// Обработчик текстовых сообщений
 	Bot.Handle(teleg.OnText, handleTextMessage)
 
@@ -101,6 +103,7 @@ func handleRegister(context teleg.Context) error {
 func handleTextMessage(context teleg.Context) error {
 	userID := context.Sender().ID
 	userName := context.Sender().FirstName
+	chatID := context.Chat().ID
 	text := context.Text()
 
 	log.Println("Получено сообщение:", context.Text(), "от", context.Sender().ID)
@@ -128,7 +131,7 @@ func handleTextMessage(context teleg.Context) error {
 			return context.Send(userName + " Слишком много текста. Дай краткую инфу о себе (имя/ник)")
 		}
 
-		err := database.AddUser(userID, steamID, info)
+		err := database.AddUser(userID, steamID, info, chatID)
 
 		// Удаляем пользователя из мапы ожидания SteamID
 		delete(awaitingInfo, userID)
@@ -329,4 +332,82 @@ func handleStatus2(context teleg.Context) error {
 
 	return context.Send(strings.Join(responses, "\n"))
 
+}
+
+func StartStatusChecker(bot *teleg.Bot) {
+
+	go func() {
+		for {
+			log.Println("ШЕДУЛЕР ЗАПУЩЕН")
+			// Получаем всех пользователей
+			users, err := database.GetAllUsers()
+			if err != nil {
+				log.Println("Ошибка при получении пользователей:", err)
+				continue
+			}
+			log.Println("Пользователи получены - ", users)
+			// Готовим пакет
+			const batchSize = 100
+
+			for i := 0; i < len(users); i += batchSize {
+				end := i + batchSize
+				if end > len(users) {
+					end = len(users)
+				}
+
+				batch := users[i:end]
+				var steamIDs []string
+				steamIDtoInfo := make(map[string]string)
+				steamIDtoChatID := make(map[string]int64)
+
+				for _, user := range batch {
+					steamIDs = append(steamIDs, user.SteamID)
+					steamIDtoInfo[user.SteamID] = user.Info
+					steamIDtoChatID[user.SteamID] = user.ChatID
+				}
+
+				// Получаем игроков
+				players, err := steam.GetPlayersStatuses(steamIDs)
+				if err != nil {
+					log.Println("Ошибка при получении статусов игроков:", err)
+				}
+				log.Println("Игроки получены - ", players)
+				// Обрабатываем каждого игрока
+				for _, player := range players {
+
+					steamID := player.SteamID
+					status := player.GameID == steam.CS22GameID
+
+					prevStatus, err := database.GetUserStatus(steamID)
+					if err != nil {
+						log.Println("Ошибка получения статуса игрока из таблицы player_status", err)
+						continue
+					}
+					log.Println("Статус игрока - ", player.Persona, prevStatus)
+
+					if !prevStatus && status {
+						//был не в игре, стал в игре
+						chatID := steamIDtoChatID[steamID]
+						log.Println("ЧАТ", chatID)
+						_, err := bot.Send(&teleg.Chat{ID: chatID}, fmt.Sprintf("🎮 %s Ебашит в CS2!", player.Persona))
+						if err != nil {
+							log.Println("Ошибка при отправке сообщения: ", err)
+						}
+					}
+
+					// Обновляем статус в базе данных
+					err = database.UpdatePlayerStatus(steamID, status)
+					if err != nil {
+						log.Println("Ошибка при обновлении статуса: ", err)
+					}
+
+				}
+
+			}
+
+			// Тайм аут
+			time.Sleep(1 * time.Minute)
+
+		}
+	}()
 }

@@ -3,6 +3,7 @@ CREATE TABLE IF NOT EXISTS users (
     telegram_id BIGINT NOT NULL UNIQUE,
     steam_id VARCHAR(64) NOT NULL UNIQUE,
     info TEXT,
+    chat_id BIGINT,
     created_at TIMESTAMP DEFAULT NOW()
 );
 
