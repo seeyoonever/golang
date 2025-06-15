@@ -90,7 +90,7 @@ func handleRegister(context teleg.Context) error {
 	}
 
 	if found {
-		return context.Send("Вы уже зарегистрированы. ✅ OK Let's Go")
+		context.Send("Вы уже зарегистрированы. ✅ OK Let's Go")
 	}
 
 	// Записываем id пользователя в мапу, которая говорит, что от него мы ждём steamID
@@ -377,6 +377,7 @@ func StartStatusChecker(bot *teleg.Bot) {
 
 					steamID := player.SteamID
 					status := player.GameID == steam.CS22GameID
+					info := steamIDtoInfo[steamID]
 
 					prevStatus, err := database.GetUserStatus(steamID)
 					if err != nil {
@@ -389,7 +390,7 @@ func StartStatusChecker(bot *teleg.Bot) {
 						//был не в игре, стал в игре
 						chatID := steamIDtoChatID[steamID]
 						log.Println("ЧАТ", chatID)
-						_, err := bot.Send(&teleg.Chat{ID: chatID}, fmt.Sprintf("🎮 %s Ебашит в CS2!", player.Persona))
+						_, err := bot.Send(&teleg.Chat{ID: chatID}, fmt.Sprintf("🎮 %s (%s) теперь ебашит в CS2!", info, player.Persona))
 						if err != nil {
 							log.Println("Ошибка при отправке сообщения: ", err)
 						}
@@ -406,7 +407,7 @@ func StartStatusChecker(bot *teleg.Bot) {
 			}
 
 			// Тайм аут
-			time.Sleep(1 * time.Minute)
+			time.Sleep(2 * time.Minute)
 
 		}
 	}()

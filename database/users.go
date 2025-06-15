@@ -76,9 +76,27 @@ func GetAllUsers() ([]User, error) {
 }
 
 func DeleteUser(telegramID int64) error {
+	var steam_id string
+	query_for_steam_id := "SELECT steam_id FROM users WHERE telegram_id = $1"
+	err := DB.QueryRow(context.Background(), query_for_steam_id, telegramID).Scan(&steam_id)
+	if err != nil {
+		log.Println("Ошибка запроса к БД users для получения steamID и последующего удаления: ", err)
+		return err
+	}
+
 	query := "DELETE FROM users WHERE telegram_id = $1"
 
-	_, err := DB.Exec(context.Background(), query, telegramID)
+	_, err = DB.Exec(context.Background(), query, telegramID)
+	if err != nil {
+		log.Println("Ошибка при удалении из таблицы users", err)
+		return nil
+	}
+
+	query2 := "DELETE FROM player_status WHERE steam_id = $1"
+	_, err = DB.Exec(context.Background(), query2, steam_id)
+	if err != nil {
+		log.Println("Ошибка при удалении из таблицы player_status", err)
+	}
 
 	return err
 }
